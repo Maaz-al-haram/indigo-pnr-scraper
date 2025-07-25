@@ -1,16 +1,13 @@
 import express from 'express';
-import puppeteer from 'puppeteer';
+import chromium from 'chrome-aws-lambda';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const app = express();
 const port = process.env.PORT || 3000;
-
-// Resolve __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Serve frontend
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
@@ -19,24 +16,23 @@ app.post('/api/check-pnr', async (req, res) => {
   if (!pnr || !lastName) return res.status(400).json({ error: 'PNR and Last Name required' });
 
   try {
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    const browser = await chromium.puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
     });
-    const page = await browser.newPage();
 
-    await page.goto('https://www.goindigo.in/member/my-booking.html', {
-      waitUntil: 'networkidle2',
-    });
+    const page = await browser.newPage();
+    await page.goto('https://www.goindigo.in/member/my-booking.html', { waitUntil: 'networkidle2' });
 
     await page.type('#pnrNo', pnr);
     await page.type('#lastName', lastName);
     await page.click('#pnrBtn');
 
     await page.waitForSelector('.modifyBookingPage', { timeout: 10000 });
-
     const result = await page.evaluate(() => {
-      return document.querySelector('.modifyBookingPage')?.innerText || 'Booking not found';
+      return document.querySelector('.modifyBookingPage')?.innerText || 'No details found.';
     });
 
     await browser.close();
@@ -46,6 +42,4 @@ app.post('/api/check-pnr', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-});
+app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
