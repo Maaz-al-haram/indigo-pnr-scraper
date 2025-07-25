@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Check IndiGo PNR</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    input, button { margin: 0.5rem; padding: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h2>Check IndiGo PNR</h2>
+  <input id="pnr" placeholder="PNR" />
+  <input id="lname" placeholder="Last Name" />
+  <button onclick="checkPNR()">Check</button>
+  <pre id="result">Result will appear here</pre>
+
+  <script>
+    async function checkPNR() {
+      const pnr = document.getElementById('pnr').value;
+      const lname = document.getElementById('lname').value;
+      document.getElementById('result').textContent = "Checking...";
+      const res = await fetch('/api/check-pnr', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pnr, lastName: lname })
+      });
+      const data = await res.json();
+      document.getElementById('result').textContent = data.result || data.error;
+    }
+  </script>
+</body>
+</html>
