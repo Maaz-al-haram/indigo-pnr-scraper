@@ -3,6 +3,6 @@ services:
     name: indigo-pnr-scraper
     env: node
     plan: free
-    buildCommand: "npm install"
-    startCommand: "node server.js"
+    buildCommand: npm install
+    startCommand: node server.js
     autoDeploy: true
